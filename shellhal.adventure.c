@@ -105,9 +105,9 @@ void file_turn(char* filePath, int* counter, char* next_place, char** saved){
 
 	/*END IS A FLAG THAT SAYS IF WE MADE IT TO END OR NOT*/
 	int end = tolkien(readBuffer,saved, counter);
-	if(end != 1){ //aka the end has happened
+	//if(end != 1) //aka the end has happened
 		directions(saved, next_place, counter);
-	}
+	
 
 	for(i = 0; i < 7; i++){
 		memset(saved[i], '\0', 6);
@@ -125,12 +125,12 @@ int main(){
 	//TO DO!!!!!!!!!!!!!!!!!!!!
 	//Need to open files one at a time, and find beginning file
 	//Display options, ask user for direction 
-
-	char filePath[15];
-	memset(filePath, '\0', 15);
-	filePath = "Cobra_room";
+	
+	char filePath[20];
+	memset(filePath, '\0', 20);
 	int counter = 0;
 	char* next_place = 	malloc(10 * sizeof(char));
+	strcpy(next_place, "Cobra");
 
 	/*CREATE ARRAY TO SAVE LOCATIONS*/
 	char** saved = malloc(7 * sizeof(char*));
@@ -142,8 +142,8 @@ int main(){
 	}
 
 	do{
+	sprintf(filePath, "%s_room", next_place);
 	file_turn(filePath, &counter, next_place, saved);
-	strcopyfilePath
 	}while(1);
 
 

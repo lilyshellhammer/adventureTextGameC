@@ -1,3 +1,10 @@
+/**********************************************************************************
+* Program Name: Build Rooms - Text Adventure Game
+* Author: Lily Shellhammer
+* Date: Feb 10th, 2017
+* Description: Creates rooms with randomly generated connections, beg/middle/end rooms
+* 			   all in separate files within a subdirectory called shellhal.rooms.<PID>
+***********************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -5,13 +12,12 @@
 #include <time.h>
 #include <unistd.h>
 
-/******************************************************************************/
-/*
+/*****************************************************************
 * Function name: create_names
 * Description: hardcodes a 2d dynamic array with possible room names
 * Input: none
 * Output: 2d dynamic char array of 10 possible room names
-*/
+*****************************************************************/
 char** create_names(){
 	/*DYN CREATE 10 x 10 char array */
 	int i;
@@ -37,13 +43,13 @@ char** create_names(){
 
 	return names;
 }
-/******************************************************************************/
-/*
+
+/*****************************************************************
 * Function name: create_room_names
 * Description: Randomly selects room names from the list and creates a 2d array of names
 * Input: selection 2d array (to choose 7 names from)
 * Output: 2d dynamic char array of 7 randomly picked room names
-*/
+*****************************************************************/
 char** create_room_names(char** names){
 	/*Randomly chooses names and sets up list of 7*/
 	char** rooms = malloc(7 * sizeof(char*));
@@ -72,13 +78,13 @@ char** create_room_names(char** names){
 	}
 	return rooms;
 }
-/******************************************************************************/
-/*
+
+/*****************************************************************
 * Function name: connecting
 * Description: Randomly generates between 3 and 6 room connections. No repeats, end and beginning rooms don't connect.
 * Input: none
 * Output: 2d dynamic integer array with connections represented by their int position in "rooms" array
-*/
+*****************************************************************/
 int** connecting(){
 	int i ,j, k, g, r, flag = 0;
 	int** connected = malloc(7 * sizeof(char*));
@@ -135,13 +141,13 @@ int** connecting(){
 	}
 	return connected;
 }
-/******************************************************************************/
-/*
+
+/*****************************************************************
 * Function name: 
 * Description:
 * Input: 
 * Output:
-*/
+*****************************************************************/
 void free_int_time(int** array, int rows){
 	int i;
 	for(i = 0; i < rows; i++){
@@ -156,13 +162,13 @@ void free_char_time(char** array, int rows){
 	}
 	free(array);
 }
-/******************************************************************************/
-/*
+
+/*****************************************************************
 * Function name: main
 * Description:
 * Input: 
 * Output:
-*/
+*****************************************************************/
 int main(void){
 	/*CREATE RANDOMIZATION*/
 	time_t t;
@@ -207,9 +213,9 @@ int main(void){
 	i = 1;
 	for(i = 1; i <= 7; i++){
 		switch (i){
-			case 1: sprintf(type,"BEGIN_ROOM"); break;
-			case 7: sprintf(type, "END_ROOM"); break;
-			default: sprintf(type, "MID_ROOM"); 
+			case 1: strcpy(type,"BEGIN_ROOM"); break;
+			case 7: strcpy(type, "END_ROOM"); break;
+			default: strcpy(type, "MID_ROOM"); 
 		}
 		printf("%s_room",rooms[i]);
 		sprintf(filename, "%s_room",rooms[i]);

@@ -30,72 +30,49 @@ char** create_names(){
 }
 
 int** connecting(){
-	int i ,j, k, r, flag = 0;
+	int i ,j, k, g, r, flag = 0;
 	int** connected = malloc(7 * sizeof(char*));
 	for(i = 0; i < 7; i++)
 	{
 		connected[i] = malloc(6 * sizeof(char));
-		for(j =0; j < 1; j++){
+		for(j =0; j < 6; j++){
 			connected[i][j] = -1;
 		}
 	}
-
+	int fill = 0;
 	for(i = 0; i < 7; i++){ //FOR EACH ROOM
-		for(j =0; j < 1; j++){ //MAKE THREE RAND CONNECTIONS
+		for(j =0; j < 3; j++){ //MAKE THREE RAND CONNECTIONS
 			do{
 				flag = 0;
 				r = rand()%7;	//rand r
 				printf("r is: %d\n", r);
-
-				if((i == 0 && r == 6) || (i == 6 && r == 0)){//make sure beginning and end arent connected
+				if (fill == 6)
 					flag = 1;
-					printf("r doesn't work, end and begin meet\n");
-					break;
-				}
-				if(r != i )		
-					for(k =0; k < 6; k++)
-						if (r == connected[i][k]){ //also that it hasn't been connnected before
+				else if(r == i || (r==0 && r==6) || (r==6 && r==0)) // if same or beg/end connected
+					flag = 1;
+				else{ 
+					for (g = 0; g < 6; g++){
+						if (connected[i][k] == r){
 							flag = 1;
-							printf("r doesn't work, already connected\n");
 							break;
 						}
-				else if (r == i){	//make sure its not same number
-					flag = 1;
-					printf("r doesn't work, its the same as position\n");
-					break;
+					}
+					k = 0;
+					while(connected[r][k] != -1 && k < 6) //check next position to put val!
+						k++;
+					if(k==6)
+						flag = 1;
+					else{
+						connected[i][fill] = r;
+						connected[r][k] = i;
+					}
 				}
-				k = 0;
-				while(connected[r][k] != -1 && k<6)	//add new conneciton to next available spot
-					k++;
-					printf("incrementing to find next k available, k is %d\n", k);
-				if(k == 6)		//unless 6 connections are already made!
-					flag = 1;
+				//if already there
+				//if maxed out values already
+
 			}while(flag == 1);
-			connected[i][j] = r;	//add new connection
-			connected[r][k] = i;	//add to other side as well
 		}
-	}
-
-	printf("\n\n");
-	for(i = 0; i < 7; i++){
-		for(j =0; j < 6; j++){
-			printf("%d ", connected[i][j]);
-		}
-		printf("\n");
-	}
-
-	return connected;
-}
-
-int** new_connecting(){
-	int i ,j, k, r, flag = 0;
-	int** connected = malloc(7 * sizeof(char*));
-	for(i = 0; i < 7; i++)
-	{
-		connected[i] = malloc(6 * sizeof(char));
-		for(j =0; j < 6; j++){
-			connected[i][j] = -1;
-		}
+		fill = 0;
 	}
 
 	printf("\n\n");
@@ -135,6 +112,21 @@ char** create_room_names(char** names){
 	return rooms;
 }
 
+void free_int_time(int** array, int rows){
+	int i;
+	for(i = 0; i < rows; i++){
+		free(array[i]);
+	}
+	free(array);
+}
+
+void free_char_time(char** array, int rows){
+	int i;
+	for(i = 0; i < rows; i++){
+		free(array[i]);
+	}
+	free(array);
+}
 
 int main(void){
 	/*CREATE RANDOMIZATION*/
@@ -161,27 +153,41 @@ int main(void){
 	char **names = create_names();
 	/*CREATE RANDOM NAMES*/
 	char** rooms = create_room_names(names);
+	/*MAKE CONNECTIONS BASED ON INTS*/
+	int** connected = connecting();
 
-	int** connected = new_connecting();
+
 	/*PRINT DESCRIPTIONS TO SEPARATE FILES*/
 	int i;
-	char name_des[22]; memset(name_des, '\0', 22);
-	char type_des[22]; memset(type_des, '\0', 22);
-	char type[22]; memset(type, '\0', 22);
-	char fileTime[22]; memset(fileTime, '\0', 22);
-	for(i = 1; i <= 7; i++){
+	/*char *name_des = malloc(10 * sizeof(char)); 
+	memset(name_des, '\0', 22);
+	char *type_des = malloc(10 * sizeof(char));
+	memset(type_des, '\0', 22);
+	char *type = malloc(10 * sizeof(char));
+	memset(type, '\0', 22);
+	char *filename = malloc(10 * sizeof(char)); 
+	memset(filename, '\0', 22);
+	*/
+	char name_des[40], type_des[40], type[40], filename[40];
+	i = 0;
+	//for(i = 1; i <= 7; i++){
 		switch (i){
 			case 1: strcpy(type,"BEGIN_ROOM"); break;
 			case 7: strcpy(type, "END_ROOM"); break;
 			default: strcpy(type, "MID_ROOM"); break;
 		}
-		strcpy(fileTime, rooms[i]);
-		file_descriptor = open(fileTime, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+		sprintf(filename, "%s_room",rooms[i]);
+		file_descriptor = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+		if (file_descriptor == -1)
+		{
+			printf("Hull breach - open() failed on \"%s\"\n", newFilePath); perror("In main()");
+			exit(1);
+		}
 		sprintf(name_des,"ROOM NAME: %s\n",rooms[i]);
 		nwritten = write(file_descriptor, name_des, strlen(name_des) * sizeof(char));
 		sprintf(type_des, "ROOM TYPE: %s\n", type);
 		nwritten = write(file_descriptor, type_des, strlen(type_des) * sizeof(char));
-	}
+	//}
 
 	char readBuffer[38];
 	memset(readBuffer, '\0', sizeof(readBuffer)); // Clear out the array before using it 
@@ -189,5 +195,10 @@ int main(void){
 	nread = read(file_descriptor, readBuffer, sizeof(readBuffer));
 
 	printf("File contents:\n%s\n", readBuffer);
+
+	free_char_time(names, 10);
+	free_char_time(rooms, 7);
+	free_int_time(connected, 7);
+
 	exit(0);
 }

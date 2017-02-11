@@ -5,7 +5,15 @@
 #include <time.h>
 #include <unistd.h>
 
+/******************************************************************************/
+/*
+* Function name: create_names
+* Description: hardcodes a 2d dynamic array with possible room names
+* Input: none
+* Output: 2d dynamic char array of 10 possible room names
+*/
 char** create_names(){
+	/*DYN CREATE 10 x 10 char array */
 	int i;
 	char** names = malloc(10 * sizeof(char*));
 	for(i = 0; i < 10; i++)
@@ -13,6 +21,7 @@ char** create_names(){
 		names[i] = malloc(10 * sizeof(char));
 		memset(names[i], '\0', 10);
 		switch(i){
+			/*hardcoded 10 names*/
 			case 0: strcpy(names[i], "NYTimes"); break;
 			case 1: strcpy(names[i], "Cobra"); break;
 			case 2: strcpy(names[i], "Lambda"); break;
@@ -28,7 +37,48 @@ char** create_names(){
 
 	return names;
 }
-
+/******************************************************************************/
+/*
+* Function name: create_room_names
+* Description: Randomly selects room names from the list and creates a 2d array of names
+* Input: selection 2d array (to choose 7 names from)
+* Output: 2d dynamic char array of 7 randomly picked room names
+*/
+char** create_room_names(char** names){
+	/*Randomly chooses names and sets up list of 7*/
+	char** rooms = malloc(7 * sizeof(char*));
+	int i, j, count=0;
+	int used[7];
+	for(i = 0; i < 7; i++)
+	{
+		int r = rand() % 10;
+		for(j = 0; j < 7; j++){
+			if (r == used[j]){
+				r = rand() % 10;
+				j = -1;
+			}
+		}
+		rooms[i] = malloc(10 * sizeof(char));
+		memset(rooms[i], '\0', 10);
+		strcpy(rooms[i], names[r]);
+		used[count] = r;
+		count++;
+	}
+	/******************************************/
+	/*JUST FOR PRINTING ROOM NAMES*/
+	for(i = 0; i < 7; i++)
+	{
+		printf("%s\n", rooms[i]);
+	}
+	return rooms;
+}
+/******************************************************************************/
+/*
+* Function name: connecting
+* Description: Randomly generates between 3 and 6 room connections. No repeats, end and beginning rooms don't connect.
+* Input: none
+* Output: 2d dynamic integer array with connections represented by their int position in "rooms" array
+*/
 int** connecting(){
 	int i ,j, k, g, r, flag = 0;
 	int** connected = malloc(7 * sizeof(char*));
@@ -45,14 +95,14 @@ int** connecting(){
 			do{
 				flag = 0;
 				r = rand()%7;	//rand r
-				printf("r is: %d\n", r);
+				printf("r is: %d, i is: %d\n", r, i);
 				if (fill == 6)
 					flag = 1;
 				else if(r == i || (r==0 && r==6) || (r==6 && r==0)) // if same or beg/end connected
 					flag = 1;
 				else{ 
 					for (g = 0; g < 6; g++){
-						if (connected[i][k] == r){
+						if (connected[i][g] == r){
 							flag = 1;
 							break;
 						}
@@ -74,7 +124,8 @@ int** connecting(){
 		}
 		fill = 0;
 	}
-
+	/******************************************/
+	/* THIS IS JUST TO PRINT OUT CONNECTIONS TO SEE IF THEY ARE WORING*/
 	printf("\n\n");
 	for(i = 0; i < 7; i++){
 		for(j =0; j < 6; j++){
@@ -84,34 +135,13 @@ int** connecting(){
 	}
 	return connected;
 }
-
-char** create_room_names(char** names){
-	char** rooms = malloc(7 * sizeof(char*));
-	int i, j, count=0;
-	int used[7];
-	for(i = 0; i < 7; i++)
-	{
-		int r = rand() % 10;
-		for(j = 0; j < 7; j++){
-			if (r == used[j]){
-				r = rand() % 10;
-				j = -1;
-			}
-		}
-		rooms[i] = malloc(10 * sizeof(char));
-		memset(rooms[i], '\0', 10);
-		strcpy(rooms[i], names[r]);
-		used[count] = r;
-		count++;
-	}
-
-	for(i = 0; i < 7; i++)
-	{
-		printf("%s\n", rooms[i]);
-	}
-	return rooms;
-}
-
+/******************************************************************************/
+/*
+* Function name: 
+* Description:
+* Input: 
+* Output:
+*/
 void free_int_time(int** array, int rows){
 	int i;
 	for(i = 0; i < rows; i++){
@@ -119,7 +149,6 @@ void free_int_time(int** array, int rows){
 	}
 	free(array);
 }
-
 void free_char_time(char** array, int rows){
 	int i;
 	for(i = 0; i < rows; i++){
@@ -127,7 +156,13 @@ void free_char_time(char** array, int rows){
 	}
 	free(array);
 }
-
+/******************************************************************************/
+/*
+* Function name: main
+* Description:
+* Input: 
+* Output:
+*/
 int main(void){
 	/*CREATE RANDOMIZATION*/
 	time_t t;
@@ -158,7 +193,7 @@ int main(void){
 
 
 	/*PRINT DESCRIPTIONS TO SEPARATE FILES*/
-	int i;
+	int i, j;
 	/*char *name_des = malloc(10 * sizeof(char)); 
 	memset(name_des, '\0', 22);
 	char *type_des = malloc(10 * sizeof(char));
@@ -168,14 +203,15 @@ int main(void){
 	char *filename = malloc(10 * sizeof(char)); 
 	memset(filename, '\0', 22);
 	*/
-	char name_des[40], type_des[40], type[40], filename[40];
-	i = 0;
-	//for(i = 1; i <= 7; i++){
+	char name_des[100], type_des[100], type[100], filename[100], conn_des[100];
+	i = 1;
+	for(i = 1; i <= 7; i++){
 		switch (i){
-			case 1: strcpy(type,"BEGIN_ROOM"); break;
-			case 7: strcpy(type, "END_ROOM"); break;
-			default: strcpy(type, "MID_ROOM"); break;
+			case 1: sprintf(type,"BEGIN_ROOM"); break;
+			case 7: sprintf(type, "END_ROOM"); break;
+			default: sprintf(type, "MID_ROOM"); 
 		}
+		printf("%s_room",rooms[i]);
 		sprintf(filename, "%s_room",rooms[i]);
 		file_descriptor = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 		if (file_descriptor == -1)
@@ -183,11 +219,30 @@ int main(void){
 			printf("Hull breach - open() failed on \"%s\"\n", newFilePath); perror("In main()");
 			exit(1);
 		}
+		printf("ROOM NAME: %s\n",rooms[i]);
 		sprintf(name_des,"ROOM NAME: %s\n",rooms[i]);
 		nwritten = write(file_descriptor, name_des, strlen(name_des) * sizeof(char));
+		j=0;
+		while(j < 6 && connected[i][j] != -1){
+			sprintf(conn_des,"ROOM CONNECTION: %s\n",rooms[connected[i][j]]);
+			nwritten = write(file_descriptor, conn_des, strlen(conn_des) * sizeof(char));
+			memset(conn_des, '\0', 256);
+			j++;
+		}
+		printf("ROOM TYPE: %s\n", type);
 		sprintf(type_des, "ROOM TYPE: %s\n", type);
 		nwritten = write(file_descriptor, type_des, strlen(type_des) * sizeof(char));
-	//}
+	
+	/*memset(name_des, '\0', 40);
+	memset(type_des, '\0', 40);
+	memset(type, '\0', 40);
+	memset(filename, '\0', 40);
+	*/
+		/*printf("name_des is: %s\n", name_des);
+		printf("type_des is: %s\n", type_des);
+		printf("filename is: %s\n", filename);
+		*/
+	}
 
 	char readBuffer[38];
 	memset(readBuffer, '\0', sizeof(readBuffer)); // Clear out the array before using it 

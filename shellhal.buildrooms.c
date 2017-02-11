@@ -29,31 +29,45 @@ char** create_names(){
 	return names;
 }
 
-int** connectioning(){
-	printf("here");
+int** connecting(){
 	int i ,j, k, r, flag = 0;
 	int** connected = malloc(7 * sizeof(char*));
 	for(i = 0; i < 7; i++)
 	{
 		connected[i] = malloc(6 * sizeof(char));
-		memset(connected[i], -1, 6);
+		for(j =0; j < 1; j++){
+			connected[i][j] = -1;
+		}
 	}
 
 	for(i = 0; i < 7; i++){ //FOR EACH ROOM
-		for(j =0; j < 3; j++){ //MAKE THREE RAND CONNECTIONS
+		for(j =0; j < 1; j++){ //MAKE THREE RAND CONNECTIONS
 			do{
+				flag = 0;
 				r = rand()%7;	//rand r
-				if((i == 0 && r == 6) || (i == 6 && r == 0)) //make sure beginning and end arent connected
+				printf("r is: %d\n", r);
+
+				if((i == 0 && r == 6) || (i == 6 && r == 0)){//make sure beginning and end arent connected
 					flag = 1;
+					printf("r doesn't work, end and begin meet\n");
+					break;
+				}
 				if(r != i )		
 					for(k =0; k < 6; k++)
-						if (r == connected[i][k])  //also that it hasn't been connnected before
+						if (r == connected[i][k]){ //also that it hasn't been connnected before
 							flag = 1;
-				else if (r == i)	//make sure its not same number
+							printf("r doesn't work, already connected\n");
+							break;
+						}
+				else if (r == i){	//make sure its not same number
 					flag = 1;
+					printf("r doesn't work, its the same as position\n");
+					break;
+				}
 				k = 0;
-				while(connected[r][k] != -1)	//add new conneciton to next available spot
+				while(connected[r][k] != -1 && k<6)	//add new conneciton to next available spot
 					k++;
+					printf("incrementing to find next k available, k is %d\n", k);
 				if(k == 6)		//unless 6 connections are already made!
 					flag = 1;
 			}while(flag == 1);
@@ -62,6 +76,7 @@ int** connectioning(){
 		}
 	}
 
+	printf("\n\n");
 	for(i = 0; i < 7; i++){
 		for(j =0; j < 6; j++){
 			printf("%d ", connected[i][j]);
@@ -69,6 +84,27 @@ int** connectioning(){
 		printf("\n");
 	}
 
+	return connected;
+}
+
+int** new_connecting(){
+	int i ,j, k, r, flag = 0;
+	int** connected = malloc(7 * sizeof(char*));
+	for(i = 0; i < 7; i++)
+	{
+		connected[i] = malloc(6 * sizeof(char));
+		for(j =0; j < 6; j++){
+			connected[i][j] = -1;
+		}
+	}
+
+	printf("\n\n");
+	for(i = 0; i < 7; i++){
+		for(j =0; j < 6; j++){
+			printf("%d ", connected[i][j]);
+		}
+		printf("\n");
+	}
 	return connected;
 }
 
@@ -126,19 +162,21 @@ int main(void){
 	/*CREATE RANDOM NAMES*/
 	char** rooms = create_room_names(names);
 
-	int** connected = connectioning();
+	int** connected = new_connecting();
 	/*PRINT DESCRIPTIONS TO SEPARATE FILES*/
 	int i;
-	char name_des[22],type_des[22];
-	char type[18],filename[15];
+	char name_des[22]; memset(name_des, '\0', 22);
+	char type_des[22]; memset(type_des, '\0', 22);
+	char type[22]; memset(type, '\0', 22);
+	char fileTime[22]; memset(fileTime, '\0', 22);
 	for(i = 1; i <= 7; i++){
 		switch (i){
 			case 1: strcpy(type,"BEGIN_ROOM"); break;
 			case 7: strcpy(type, "END_ROOM"); break;
 			default: strcpy(type, "MID_ROOM"); break;
 		}
-		sprintf(filename, "%s_room",rooms[i]);
-		file_descriptor = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+		strcpy(fileTime, rooms[i]);
+		file_descriptor = open(fileTime, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 		sprintf(name_des,"ROOM NAME: %s\n",rooms[i]);
 		nwritten = write(file_descriptor, name_des, strlen(name_des) * sizeof(char));
 		sprintf(type_des, "ROOM TYPE: %s\n", type);

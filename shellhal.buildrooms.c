@@ -92,7 +92,7 @@ int** connecting(){
 	{
 		connected[i] = malloc(6 * sizeof(char));
 		for(j =0; j < 6; j++){
-			connected[i][j] = -1;
+			connected[i][j] = 0;
 		}
 	}
 	int fill = 0;
@@ -101,31 +101,14 @@ int** connecting(){
 			do{
 				flag = 0;
 				r = rand()%7;	//rand r
-				printf("r is: %d, i is: %d\n", r, i);
-				if (fill == 6)
+				if (connected[i][r]==1)
 					flag = 1;
-				else if(r == i || (r==0 && r==6) || (r==6 && r==0)) // if same or beg/end connected
-					flag = 1;
-				else{ 
-					for (g = 0; g < 6; g++){
-						if (connected[i][g] == r){
-							flag = 1;
-							break;
-						}
-					}
-					k = 0;
-					while(connected[r][k] != -1 && k < 6) //check next position to put val!
-						k++;
-					if(k==6)
-						flag = 1;
-					else{
-						connected[i][fill] = r;
-						connected[r][k] = i;
-					}
+				else{
+					connected[i][r] = 1;
+					connected[r][i] = 1;
+					flag = 0;
 				}
-				//if already there
-				//if maxed out values already
-
+				
 			}while(flag == 1);
 		}
 		fill = 0;
@@ -209,15 +192,20 @@ int main(void){
 	char *filename = malloc(10 * sizeof(char)); 
 	memset(filename, '\0', 22);
 	*/
-	char name_des[100], type_des[100], type[100], filename[100], conn_des[100];
-	i = 1;
-	for(i = 1; i <= 7; i++){
+	char name_des[30], type_des[30], type[30], filename[30], conn_des[30];
+
+	for(i = 0; i < 7; i++){
+		memset(name_des, '\0', 30);
+		memset(type_des, '\0', 30);
+		memset(type, '\0', 30);
+		memset(filename, '\0', 30);
+		memset(conn_des, '\0', 30);
 		switch (i){
-			case 1: strcpy(type,"BEGIN_ROOM"); break;
-			case 7: strcpy(type, "END_ROOM"); break;
+			case 1: strcpy(type,"END_ROOM"); break;
+			case 7: strcpy(type, "BEG_ROOM"); break;
 			default: strcpy(type, "MID_ROOM"); 
 		}
-		printf("%s_room",rooms[i]);
+		
 		sprintf(filename, "%s_room",rooms[i]);
 		file_descriptor = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 		if (file_descriptor == -1)
@@ -225,41 +213,30 @@ int main(void){
 			printf("Hull breach - open() failed on \"%s\"\n", newFilePath); perror("In main()");
 			exit(1);
 		}
-		printf("ROOM NAME: %s\n",rooms[i]);
 		sprintf(name_des,"ROOM NAME: %s\n",rooms[i]);
 		nwritten = write(file_descriptor, name_des, strlen(name_des) * sizeof(char));
 		j=0;
-		while(j < 6 && connected[i][j] != -1){
-			sprintf(conn_des,"ROOM CONNECTION: %s\n",rooms[connected[i][j]]);
+		for(j=0; j< 6; j++){
+			if(connected[i][j] == 1)
+				sprintf(conn_des,"ROOM CONNECTION: %s\n",names[j]);
 			nwritten = write(file_descriptor, conn_des, strlen(conn_des) * sizeof(char));
-			memset(conn_des, '\0', 256);
-			j++;
 		}
-		printf("ROOM TYPE: %s\n", type);
+
 		sprintf(type_des, "ROOM TYPE: %s\n", type);
 		nwritten = write(file_descriptor, type_des, strlen(type_des) * sizeof(char));
 	
-	/*memset(name_des, '\0', 40);
-	memset(type_des, '\0', 40);
-	memset(type, '\0', 40);
-	memset(filename, '\0', 40);
-	*/
-		/*printf("name_des is: %s\n", name_des);
-		printf("type_des is: %s\n", type_des);
-		printf("filename is: %s\n", filename);
-		*/
 	}
 
-	char readBuffer[38];
+	char readBuffer[256];
 	memset(readBuffer, '\0', sizeof(readBuffer)); // Clear out the array before using it 
 	lseek(file_descriptor, 0, SEEK_SET); // Reset the file pointer to the beginning of the file 
 	nread = read(file_descriptor, readBuffer, sizeof(readBuffer));
 
 	printf("File contents:\n%s\n", readBuffer);
 
-	free_char_time(names, 10);
-	free_char_time(rooms, 7);
-	free_int_time(connected, 7);
+//	free_char_time(names, 10);
+//	free_char_time(rooms, 7);
+//	free_int_time(connected, 7);
 
 	exit(0);
 }

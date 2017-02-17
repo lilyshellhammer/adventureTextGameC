@@ -10,6 +10,9 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 /*****************************************************************
 * Function name: directions
@@ -28,6 +31,7 @@ void directions(char** saved, char* answer, int *counter){
 					//printf("Headed to %s\n", saved[i]);
 					flag = 1;
 					(*counter)+=1;
+					break;
 				}
 		}
 		if(flag == 0){
@@ -115,6 +119,10 @@ void file_turn(char* filePath, int* counter, char* next_place, char** saved){
 }
 
 
+void get_first(char* next_place, char* file){
+
+}
+
 /*****************************************************************
 * Function name: main
 * Description: 
@@ -122,17 +130,49 @@ void file_turn(char* filePath, int* counter, char* next_place, char** saved){
 * Output: 
 *****************************************************************/
 int main(){
-	//TO DO!!!!!!!!!!!!!!!!!!!!
+	int max = -1;
+
+	char* next_place;
 	//Need to open files one at a time, and find beginning file
 	//Display options, ask user for direction 
-	
+	struct dirent *dir;
+	struct dirent *shellhaldir;
+	const char direct[15] = "shellhal.room."; // string to look for in strstr function
+	struct stat statBuffer; //struct for stat()
+	char datestring[256];
+
+	DIR *d = opendir(".");
+	DIR *shellhal;
+	while ((dir = readdir(d)) != NULL)
+	 {	
+	 	//printf("%s\n", dir->d_name);
+		 if (strstr(dir->d_name, direct) != NULL)
+		 {
+		 	stat(dir->d_name, &statBuffer);	 //call stat on directiory
+        	shellhal = opendir(dir->d_name);
+        	if(shellhal){
+        		while((shellhaldir = readdir(shellhal)) != NULL){
+        			if (strstr(shellhaldir->d_name, direct) != NULL)
+					 {
+					 	stat(shellhaldir->d_name, &statBuffer);
+					 }	
+        		}
+        	}
+					 	
+	 	}
+	}
+ //Release the stored top level directory
+ 
+ 	closedir(d);
+ 
+
 	char filePath[20];
 	memset(filePath, '\0', 20);
 	int counter = 0;
-	char* next_place = 	malloc(10 * sizeof(char));
+	next_place = 	malloc(10 * sizeof(char));
 	strcpy(next_place, "Cobra");
 
-	/*CREATE ARRAY TO SAVE LOCATIONS*/
+	/*CREATE ARRAY TO SAVE LOCATIONS*/ 
 	char** saved = malloc(7 * sizeof(char*));
 	int i, j;
 	for(i = 0; i < 7; i++)
@@ -146,6 +186,9 @@ int main(){
 	file_turn(filePath, &counter, next_place, saved);
 	}while(1);
 
+	free(next_place);
+	for(i = 0; i < 7; i++) { free(saved[i]);}
+	free(saved);
 
 	exit(0);
 }

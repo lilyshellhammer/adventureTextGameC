@@ -71,13 +71,14 @@ char** create_room_names(char** names){
 		used[count] = r;
 		count++;
 	}
+	return rooms;
 	/******************************************/
 	/*JUST FOR PRINTING ROOM NAMES*/
-	for(i = 0; i < 7; i++)
+	/*for(i = 0; i < 7; i++)
 	{
 		printf("%s\n", rooms[i]);
 	}
-	return rooms;
+	*/
 }
 
 /*****************************************************************
@@ -124,16 +125,20 @@ int** connecting(){
 				connected[i][j] = 0;
 		}
 	}
+
+	return connected;
+	
 	/******************************************/
 	/* THIS IS JUST TO PRINT OUT CONNECTIONS TO SEE IF THEY ARE WORING*/
-	printf("\n\n");
+	/*printf("\n\n");
 	for(i = 0; i < 7; i++){
 		for(j =0; j < 7; j++){
 			printf("%d ", connected[i][j]);
 		}
 		printf("\n");
 	}
-	return connected;
+	*/
+	
 }
 
 /*****************************************************************
@@ -203,11 +208,7 @@ int main(void){
 		memset(filename, '\0', 30);
 		memset(conn_des, '\0', 30);
 		//int r = rand()%7;
-		switch (i){
-			case 0: strcpy(type,"END_ROOM"); break;
-			case 6: strcpy(type, "BEG_ROOM"); break;
-			default: strcpy(type, "MID_ROOM"); 
-		}
+	
 		
 		sprintf(filename, "%s/%s_room",newFilePath,rooms[i]);
 		file_descriptor = open(filename, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -224,10 +225,16 @@ int main(void){
 				nwritten = write(file_descriptor, conn_des, strlen(conn_des) * sizeof(char));
 			}
 		}
-		if(!strcmp(type, "BEG_ROOM")){
-			printf("BEG ROOM IS: %s", name_des);
+		memset(type, '\0', 30);
+		switch (i){
+			case 0: strcpy(type,"END_ROOM"); break;
+			case 6: strcpy(type, "BEG_ROOM"); break;
+			sleep(2);
+			default: strcpy(type, "MID_ROOM"); 
 		}
+
 		sprintf(type_des, "ROOM TYPE: %s\n", type);
+		printf("%s\n",type_des);
 		nwritten = write(file_descriptor, type_des, strlen(type_des) * sizeof(char));
 		close(file_descriptor);
 	

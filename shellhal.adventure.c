@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+
+int MAX = -1;
 /*****************************************************************
 * Function name: directions
 * Description: 
@@ -130,16 +132,17 @@ void get_first(char* next_place, char* file){
 * Output: 
 *****************************************************************/
 int main(){
-	int max = -1;
-
+	int max_so_far = -1;
 	char* next_place;
+	char* latestFile;
 	//Need to open files one at a time, and find beginning file
 	//Display options, ask user for direction 
 	struct dirent *dir;
-	struct dirent *shellhaldir;
+
 	const char direct[15] = "shellhal.room."; // string to look for in strstr function
 	struct stat statBuffer; //struct for stat()
 	char datestring[256];
+	time_t lastModified;
 
 	DIR *d = opendir(".");
 	DIR *shellhal;
@@ -149,18 +152,53 @@ int main(){
 		 if (strstr(dir->d_name, direct) != NULL)
 		 {
 		 	stat(dir->d_name, &statBuffer);	 //call stat on directiory
-        	shellhal = opendir(dir->d_name);
-        	if(shellhal){
-        		while((shellhaldir = readdir(shellhal)) != NULL){
-        			if (strstr(shellhaldir->d_name, direct) != NULL)
-					 {
-					 	stat(shellhaldir->d_name, &statBuffer);
-					 }	
-        		}
-        	}
+        	lastModified = statBuffer.st_mtime;
+        	printf("\n");
+	  		printf("%s: %s\n", dir->d_name, ctime(&lastModified));
+	  		printf("%s: %d\n", dir->d_name, lastModified);
+            if (lastModified > max_so_far) // MAX_SO_FAR is a global initialized to -1
+            {
+            	max_so_far = lastModified;
+            	latestFile = dir->d_name;
+            }
+ 
+        }
+        	
 					 	
-	 	}
+	 	
 	}
+	printf("\n************Max so far is: %s\n\n", latestFile);
+	max_so_far = -1;
+
+	char shellhaldir[30];
+	const char end[6] = "_room";
+	struct dirent *s;
+	//struct stat statBuffer; //struct for stat()
+	time_t lastModifiedShell;
+
+	memset(shellhaldir, '\0', 30);
+	sprintf(shellhaldir, "/%s", latestFile);
+	shellhal = opendir(latestFile);
+
+	while ((s = readdir(shellhal)) != NULL){
+			if (strstr(s->d_name, end) != NULL) {
+	 		stat(s->d_name, &statBuffer);	 //call stat on directiory
+        	lastModifiedShell = statBuffer.st_mtime;
+        	printf("\n");
+	  		printf("%s: %s\n", s->d_name, ctime(&lastModifiedShell));
+	  		printf("%s: %d\n", s->d_name, lastModifiedShell);
+            if (lastModifiedShell > max_so_far) // MAX_SO_FAR is a global initialized to -1
+            {
+            	max_so_far = lastModifiedShell;
+            	next_place = s->d_name;
+				 }
+			}
+		}
+		printf("\n************Max so far is: %s\n\n", next_place);
+
+
+        		
+
  //Release the stored top level directory
  
  	closedir(d);
@@ -173,6 +211,7 @@ int main(){
 	strcpy(next_place, "Cobra");
 
 	/*CREATE ARRAY TO SAVE LOCATIONS*/ 
+	
 	char** saved = malloc(7 * sizeof(char*));
 	int i, j;
 	for(i = 0; i < 7; i++)

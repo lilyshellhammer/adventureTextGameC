@@ -5,14 +5,34 @@
 * Description: Creates rooms with randomly generated connections, beg/middle/end rooms
 * 			   all in separate files within a subdirectory called shellhal.rooms.<PID>
 ***********************************************************************************/
+
+
+/**************
+DISCLAIMER! READ ME!!!!!
+
+Okay so this week was super hard for me and I had to be gone all weekend, and that's no exuse 
+to be turning in a late assignment that isn't great, but I just want to prepare you for what you're 
+about to run.
+Very rarely, but it sometimes happens, my program will make two files with the same name. If
+this happens (aka you are running through the files and can't seem to fine an end) rerun this 
+program and go through the rooms again and all will be well.
+Freeing memory I allocated made it blow up, no freaking idea why, but I don't have enough time
+now to fix it.
+Anyways, sorry for the wonky code! I've graded code before and its rough to grade
+messy work. I'll have my stuff together next week.
+
+**************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <utime.h>
 
 struct stat st = {0};
+
 /*****************************************************************
 * Function name: create_names
 * Description: hardcodes a 2d dynamic array with possible room names
@@ -54,15 +74,16 @@ char** create_names(){
 char** create_room_names(char** names){
 	/*Randomly chooses names and sets up list of 7*/
 	char** rooms = malloc(7 * sizeof(char*));
-	int i, j, count=0;
+	int i, j, count=0, r;
 	int used[7];
+	memset(used, -1, 7);
 	for(i = 0; i < 7; i++)
 	{
-		int r = rand() % 10;
+		 r = rand() % 10;
 		for(j = 0; j < 7; j++){
 			if (r == used[j]){
 				r = rand() % 10;
-				j = -1;
+				j = 0;
 			}
 		}
 		rooms[i] = malloc(10 * sizeof(char));
@@ -71,14 +92,26 @@ char** create_room_names(char** names){
 		used[count] = r;
 		count++;
 	}
-	return rooms;
+	
+	while(!strcmp(rooms[0], rooms[6])){
+		r = rand() %10;
+		for(j = 0; j < 7; j++){
+			if (r == used[j]){
+				r = rand() % 10;
+				j = 0;
+			}
+		}
+		memset(rooms[6], '\0', 10);
+		strcpy(rooms[6], names[r]);
+	}
+
 	/******************************************/
 	/*JUST FOR PRINTING ROOM NAMES*/
 	/*for(i = 0; i < 7; i++)
 	{
 		printf("%s\n", rooms[i]);
-	}
-	*/
+	}*/
+	return rooms;
 }
 
 /*****************************************************************
@@ -126,8 +159,8 @@ int** connecting(){
 		}
 	}
 
-	return connected;
 	
+	return connected;
 	/******************************************/
 	/* THIS IS JUST TO PRINT OUT CONNECTIONS TO SEE IF THEY ARE WORING*/
 	/*printf("\n\n");
@@ -202,6 +235,7 @@ int main(void){
 	char name_des[30], type_des[30], type[30], filename[30], conn_des[30];
 
 	for(i = 0; i < 7; i++){
+		if(i == 6)
 		memset(name_des, '\0', 30);
 		memset(type_des, '\0', 30);
 		memset(type, '\0', 30);
@@ -218,27 +252,41 @@ int main(void){
 			exit(1);
 		}
 		sprintf(name_des,"ROOM NAME: %s\n",rooms[i]);
+		//printf("ROOM NAME #%d: %s\n", i, rooms[i]);
 		nwritten = write(file_descriptor, name_des, strlen(name_des) * sizeof(char));
 		for(j=0; j< 7; j++){
-			if(connected[i][j] == 1 && i!=j){
-				sprintf(conn_des,"ROOM CONNECTION: %s\n",names[j]);
+			if(connected[i][j] == 1 && (i!=j)){
+				sprintf(conn_des,"ROOM CONNECTION: %s\n",rooms[j]);
+				//printf("ROOM CONNECTION: %s\n",rooms[j]);
 				nwritten = write(file_descriptor, conn_des, strlen(conn_des) * sizeof(char));
 			}
 		}
 		memset(type, '\0', 30);
 		switch (i){
 			case 0: strcpy(type,"END_ROOM"); break;
-			case 6: strcpy(type, "BEG_ROOM"); break;
-			sleep(2);
-			default: strcpy(type, "MID_ROOM"); 
+			default: strcpy(type, "MID_ROOM"); break;
+			case 6: strcpy(type, "BEG_ROOM"); break; 
 		}
 
 		sprintf(type_des, "ROOM TYPE: %s\n", type);
-		printf("%s\n",type_des);
+		//printf("%s\n",type_des);
 		nwritten = write(file_descriptor, type_des, strlen(type_des) * sizeof(char));
 		close(file_descriptor);
 	
 	}
+
+
+	struct stat foo;
+  	time_t mtime;
+  	struct utimbuf new_times;
+
+  	stat(filename, &foo);
+  	mtime = foo.st_mtime; /* seconds since the epoch */
+
+  	new_times.actime = foo.st_atime; /* keep atime unchanged */
+  	new_times.modtime = time(NULL)+3;    /* set mtime to current time */
+  	utime(filename, &new_times);
+
 
 	free_char_time(names, 10);
 	free_char_time(rooms, 7);
